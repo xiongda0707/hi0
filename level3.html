@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>學習證書 - SDGs 性別平權小達人</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        /* 控制面板（列印時隱藏） */
+        .controls {
+            margin-bottom: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            width: 200px;
+            outline: none;
+        }
+        input[type="text"]:focus { border-color: #4caf50; }
+        
+        .btn {
+            padding: 10px 25px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            margin-left: 10px;
+            transition: 0.3s;
+        }
+        .btn-print { background-color: #4caf50; color: white; }
+        .btn-print:hover { background-color: #388e3c; }
+        .btn-home { background-color: #757575; color: white; text-decoration: none; display: inline-block; }
+
+        /* 證書主體 */
+        .certificate-container {
+            width: 800px;
+            height: 560px;
+            padding: 40px;
+            background-color: white;
+            position: relative;
+            border: 15px double #bc9b5d; /* 金色雙邊框 */
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            background-image: radial-gradient(circle, #fff9c4 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        /* 裝飾性角標 */
+        .certificate-container::before {
+            content: "🏆";
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 40px;
+        }
+        .certificate-container::after {
+            content: "SDGs";
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #bc9b5d;
+        }
+
+        h1 {
+            font-size: 50px;
+            color: #1a237e;
+            margin: 0 0 20px 0;
+            letter-spacing: 5px;
+        }
+
+        .award-title {
+            font-size: 32px;
+            color: #d32f2f;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .user-name-display {
+            font-size: 40px;
+            font-weight: bold;
+            text-decoration: underline;
+            min-width: 150px;
+            display: inline-block;
+            margin: 0 10px;
+            color: #333;
+        }
+
+        .content-text {
+            font-size: 22px;
+            line-height: 1.8;
+            text-align: center;
+            color: #555;
+            max-width: 600px;
+        }
+
+        .date {
+            margin-top: 40px;
+            font-size: 18px;
+            align-self: flex-end;
+            margin-right: 50px;
+        }
+
+        /* 列印樣式優化 */
+        @media print {
+            body { background-color: white; }
+            .controls { display: none; } /* 隱藏控制項 */
+            .certificate-container {
+                box-shadow: none;
+                border: 15px double #bc9b5d !important;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 控制面板 -->
+    <div class="controls">
+        <label for="nameInput">請輸入您的姓名：</label>
+        <input type="text" id="nameInput" placeholder="請輸入姓名" oninput="updateName()">
+        <button class="btn btn-print" onclick="printCertificate()">下載 / 列印證書</button>
+        <a href="index.html" class="btn btn-home">回遊戲首頁</a>
+    </div>
+
+    <!-- 證書本體 -->
+    <div class="certificate-container" id="certificate">
+        <h1>學習證書</h1>
+        <div class="award-title">「SDGs 性別平權小達人」</div>
+        
+        <div class="content-text">
+            恭喜 <span id="displayName" class="user-name-display">（填寫姓名）</span> 同學<br>
+            成功通過本遊戲之性別平權知識挑戰與情境模擬實作，<br>
+            展現出優異的性別平等素養，特頒此證，以茲鼓勵。
+        </div>
+
+        <div class="date">
+            中華民國 <span id="currentDate"></span>
+        </div>
+    </div>
+
+    <script>
+        // 即時更新姓名
+        function updateName() {
+            const inputVal = document.getElementById('nameInput').value;
+            const display = document.getElementById('displayName');
+            display.innerText = inputVal || "（填寫姓名）";
+        }
+
+        // 列印功能
+        function printCertificate() {
+            const name = document.getElementById('nameInput').value;
+            if (!name) {
+                alert("請先輸入您的姓名再進行列印喔！");
+                return;
+            }
+            window.print();
+        }
+
+        // 自動生成今日日期
+        function setDate() {
+            const now = new Date();
+            const year = now.getFullYear() - 1911; // 轉為民國年
+            const month = now.getMonth() + 1;
+            const day = now.getDate();
+            document.getElementById('currentDate').innerText = `${year} 年 ${month} 月 ${day} 日`;
+        }
+
+        window.onload = setDate;
+    </script>
+</body>
+</html>

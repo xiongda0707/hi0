@@ -1,287 +1,225 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PROJECT MUSIC</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDGs 性別平權</title>
+    <style>
+        :root {
+            --primary-color: #e91e63;
+            --bg-color: #f0f4f8;
+        }
+        body {
+            font-family: "Microsoft JhengHei", sans-serif;
+            margin: 0;
+            background-color: var(--bg-color);
+            overflow: hidden;
+        }
+        /* 頁首資訊 */
+        header {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 30px;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 10;
+            box-sizing: border-box;
+        }
+        .title { font-weight: bold; font-size: 24px; color: var(--primary-color); }
+        .score-board { font-size: 20px; font-weight: bold; }
 
-<style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:"Microsoft JhengHei";
-}
+        /* 村莊地圖 */
+        .village-map {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+            padding: 100px 50px 50px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .hut {
+            cursor: pointer;
+            text-align: center;
+            transition: transform 0.3s;
+            position: relative;
+        }
+        .hut:hover { transform: scale(1.1); }
+        .hut-icon { font-size: 60px; }
+        /* 茅草屋壞掉的樣式 */
+        .hut.broken {
+            pointer-events: none;
+            filter: grayscale(1) opacity(0.5);
+            transform: scale(0.8);
+        }
+        .hut.broken::after {
+            content: "❌";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 30px;
+        }
 
-body{
-    background:#111;
-    overflow:hidden;
-    height:100vh;
-    transition:background 0.3s;
-}
+        /* 彈出式題目視窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+        }
+        .options button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            background: #fff;
+            font-size: 16px;
+        }
+        .options button:hover { background: #fdf2f8; border-color: var(--primary-color); }
 
-h1{
-    position:absolute;
-    top:10px;
-    width:100%;
-    text-align:center;
-    color:white;
-    z-index:10;
-    letter-spacing:4px;
-    text-shadow:0 0 10px cyan;
-}
-
-#score{
-    position:absolute;
-    top:55px;
-    width:100%;
-    text-align:center;
-    color:white;
-    font-size:24px;
-    z-index:10;
-}
-
-#game{
-    width:420px;
-    height:90vh;
-    margin:40px auto;
-    background:rgba(255,255,255,0.05);
-    border:3px solid white;
-    display:flex;
-    position:relative;
-    overflow:hidden;
-    backdrop-filter: blur(10px);
-}
-
-.lane{
-    flex:1;
-    position:relative;
-    border-left:1px solid rgba(255,255,255,0.2);
-    border-right:1px solid rgba(255,255,255,0.2);
-}
-
-.hitLine{
-    position:absolute;
-    bottom:80px;
-    width:100%;
-    height:8px;
-    background:#00ffe5;
-    box-shadow:0 0 20px #00ffe5;
-}
-
-.note{
-    width:80%;
-    height:25px;
-    position:absolute;
-    left:10%;
-    top:-30px;
-    border-radius:10px;
-    animation:fall 2s linear forwards;
-    background:linear-gradient(45deg,#ff4fd8,#6a5cff);
-    box-shadow:0 0 15px #ff4fd8;
-}
-
-@keyframes fall{
-    from{
-        top:-30px;
-    }
-    to{
-        top:100%;
-    }
-}
-
-.key{
-    position:absolute;
-    bottom:20px;
-    width:100%;
-    text-align:center;
-    color:white;
-    font-size:28px;
-    font-weight:bold;
-}
-
-.effect{
-    position:absolute;
-    bottom:120px;
-    width:100%;
-    text-align:center;
-    color:white;
-    font-size:32px;
-    font-weight:bold;
-    animation:pop 0.5s forwards;
-}
-
-@keyframes pop{
-    from{
-        transform:scale(0.5);
-        opacity:1;
-    }
-    to{
-        transform:scale(1.8);
-        opacity:0;
-    }
-}
-
-#startBtn{
-    position:absolute;
-    top:100px;
-    left:50%;
-    transform:translateX(-50%);
-    padding:12px 30px;
-    border:none;
-    border-radius:15px;
-    background:#00ffe5;
-    color:#111;
-    font-size:20px;
-    cursor:pointer;
-    z-index:20;
-    box-shadow:0 0 20px #00ffe5;
-}
-
-</style>
+        /* 結果畫面 */
+        .result-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: white;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+        .btn {
+            padding: 15px 40px;
+            font-size: 18px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            margin-top: 20px;
+        }
+        .btn-retry { background-color: #607d8b; }
+        .btn-next { background-color: #4caf50; }
+    </style>
 </head>
-
 <body>
 
-<h1>PROJECT MUSIC</h1>
-<div id="score">Score：0</div>
+<header>
+    <div class="title">SDGs 性別平權</div>
+    <div class="score-board">答對題數：<span id="score">0</span> / 10</div>
+</header>
 
-<button id="startBtn">開始遊戲</button>
+<main class="village-map" id="villageMap">
+    <!-- 茅草屋由 JS 生成 -->
+</main>
 
-<div id="game">
-
-    <div class="lane" data-key="d">
-        <div class="hitLine"></div>
-        <div class="key">D</div>
+<!-- 題目 Modal -->
+<div class="modal" id="quizModal">
+    <div class="modal-content">
+        <h3 id="questionText">題目載入中...</h3>
+        <div class="options" id="optionsContainer"></div>
     </div>
-
-    <div class="lane" data-key="f">
-        <div class="hitLine"></div>
-        <div class="key">F</div>
-    </div>
-
-    <div class="lane" data-key="j">
-        <div class="hitLine"></div>
-        <div class="key">J</div>
-    </div>
-
-    <div class="lane" data-key="k">
-        <div class="hitLine"></div>
-        <div class="key">K</div>
-    </div>
-
 </div>
 
-<!-- 音樂 -->
-<audio id="bgm" loop>
-    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
-</audio>
+<!-- 結果畫面 -->
+<div class="result-overlay" id="resultScreen">
+    <h1 id="resultTitle">遊戲結束</h1>
+    <p id="resultMsg"></p>
+    <div id="resultAction"></div>
+</div>
 
 <script>
+    const questions = [
+        { q: "SDG 5 的主要目標是什麼？", a: ["消除貧窮", "實現性別平等", "氣候行動"], correct: 1 },
+        { q: "下列哪一項不屬於性別平權的範疇？", a: ["同工同酬", "女性參政權", "限制女性受教育"], correct: 2 },
+        { q: "「無酬家務勞動」通常由誰負擔較重？", a: ["男性", "女性", "比例完全相同"], correct: 1 },
+        { q: "性別平權是為了誰的利益？", a: ["只有女性", "只有男性", "所有人"], correct: 2 },
+        { q: "消除對婦女一切形式歧視的公約簡稱為？", a: ["CEDAW", "UNESCO", "WHO"], correct: 0 },
+        { q: "在職場中，因為性別而產生的薪資差異稱為？", a: ["性別薪資差距", "學歷差距", "年資差距"], correct: 0 },
+        { q: "提供平等的教育機會，是達成 SDG 5 的方式之一嗎？", a: ["是", "否"], correct: 0 },
+        { q: "玻璃天花板效應是指什麼？", a: ["建築設計", "職場晉升的無形障礙", "女性購物的習慣"], correct: 1 },
+        { q: "下列何者能促進性別平權？", a: ["強化傳統偏見", "落實法律保障", "減少女性投票權"], correct: 1 },
+        { q: "SDGs 目標希望在西元幾年前實現？", a: ["2025年", "2030年", "2050年"], correct: 1 }
+    ];
 
-const lanes = document.querySelectorAll(".lane");
-const scoreText = document.getElementById("score");
-const bgm = document.getElementById("bgm");
-const startBtn = document.getElementById("startBtn");
+    let currentScore = 0;
+    let answeredCount = 0;
+    const villageMap = document.getElementById('villageMap');
+    const scoreDisplay = document.getElementById('score');
 
-let score = 0;
-let gameStarted = false;
-
-function createNote(){
-
-    const laneIndex = Math.floor(Math.random()*4);
-    const lane = lanes[laneIndex];
-
-    const note = document.createElement("div");
-    note.classList.add("note");
-
-    lane.appendChild(note);
-
-    setTimeout(()=>{
-        if(note.parentNode){
-            note.remove();
+    // 初始化村莊茅草屋
+    function initGame() {
+        for (let i = 0; i < 10; i++) {
+            const hut = document.createElement('div');
+            hut.className = 'hut';
+            hut.innerHTML = `<div class="hut-icon">🏠</div><p>任務 ${i+1}</p>`;
+            hut.onclick = () => openQuiz(i, hut);
+            villageMap.appendChild(hut);
         }
-    },2000);
-}
+    }
 
-function startGame(){
+    function openQuiz(index, hutElement) {
+        const modal = document.getElementById('quizModal');
+        const qText = document.getElementById('questionText');
+        const optionsContainer = document.getElementById('optionsContainer');
+        
+        qText.innerText = questions[index].q;
+        optionsContainer.innerHTML = '';
 
-    if(gameStarted) return;
-
-    gameStarted = true;
-
-    bgm.play();
-
-    setInterval(createNote,650);
-
-    // 背景隨節奏改變
-    setInterval(()=>{
-
-        const colors = [
-            "#1b1b3a",
-            "#2b1055",
-            "#001f3f",
-            "#3a0f2d",
-            "#112244",
-            "#440044"
-        ];
-
-        document.body.style.background =
-            colors[Math.floor(Math.random()*colors.length)];
-
-    },500);
-
-    startBtn.style.display = "none";
-}
-
-startBtn.addEventListener("click",startGame);
-
-document.addEventListener("keydown",(e)=>{
-
-    const key = e.key.toLowerCase();
-
-    lanes.forEach(lane=>{
-
-        if(lane.dataset.key === key){
-
-            const note = lane.querySelector(".note");
-
-            if(note){
-
-                const noteTop = note.getBoundingClientRect().top;
-                const hitTop = lane.querySelector(".hitLine")
-                                   .getBoundingClientRect().top;
-
-                const distance = Math.abs(noteTop - hitTop);
-
-                if(distance < 80){
-
-                    note.remove();
-
-                    score += 100;
-
-                    scoreText.innerText = "Score：" + score;
-
-                    const effect = document.createElement("div");
-
-                    effect.classList.add("effect");
-
-                    effect.innerText = "PERFECT";
-
-                    lane.appendChild(effect);
-
-                    setTimeout(()=>{
-                        effect.remove();
-                    },500);
-
+        questions[index].a.forEach((opt, idx) => {
+            const btn = document.createElement('button');
+            btn.innerText = opt;
+            btn.onclick = () => {
+                if (idx === questions[index].correct) {
+                    currentScore++;
+                    scoreDisplay.innerText = currentScore;
                 }
+                answeredCount++;
+                hutElement.classList.add('broken');
+                modal.style.display = 'none';
+                checkGameEnd();
+            };
+            optionsContainer.appendChild(btn);
+        });
+
+        modal.style.display = 'flex';
+    }
+
+    function checkGameEnd() {
+        if (answeredCount === 10) {
+            const resultScreen = document.getElementById('resultScreen');
+            const resultMsg = document.getElementById('resultMsg');
+            const resultAction = document.getElementById('resultAction');
+            
+            resultScreen.style.display = 'flex';
+            
+            if (currentScore < 8) {
+                resultMsg.innerText = `很可惜，你只答對了 ${currentScore} 題。再接再厲！`;
+                resultAction.innerHTML = `<button class="btn btn-retry" onclick="location.reload()">重新挑戰</button>`;
+            } else {
+                resultMsg.innerText = `恭喜！你答對了 ${currentScore} 題，成功通過第一關！`;
+                resultAction.innerHTML = `<a href="level2.html" class="btn btn-next">前往下一關</a>`;
             }
         }
+    }
 
-    });
-
-});
-
+    initGame();
 </script>
 
 </body>
